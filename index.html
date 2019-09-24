@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+    <title>Phonetic Numbers</title>
+  </head>
+  <body>
+	<input class="form-control" id="in" type="text" placeholder="Enter phonetic number">
+	<button class="btn btn-info" onclick="parse()">Parse</button>
+	
+    <button class="btn btn-success" onclick="generate()">Generate Number</button>
+	<input id="size" value="3" size="2">
+	
+	<hr>
+	
+	<h3>Phonetic: <span id="phonetic"></span></h3>
+	<h5>Decimal: <span id="decimal"></span></h5>
+	<h5>Hexadecimal: <span id="hexadecimal"></span></h5>
+
+<script>
+
+var pres = "bdfghklmprstv"
+var vows = "iau"
+var sufs = "bdglnvz"
+
+var preHoms = ['b','d','f','gj','h','kcqx','l','mn','p','r','sz','t','vw']
+var vowHoms = ['iye','a','uo']
+var sufHoms = ['bp','dt','gckqx','lr','nm','vfw','zs']
+
+function parse() {
+	var input = document.getElementById('in').value
+		.replace(/[^a-zA-Z]/g, '').toLowerCase()
+	
+	var word = ''
+	var words = []
+	var num = ''
+	
+	function addNum() {
+		num += pad(nums.indexOf(word.slice(0-3)).toString(16),2)
+	}
+	
+	var iPre, iVow, iSuf
+	for (var i=0;i<input.length;i++) {
+		var w = input[i]
+		
+		switch (word.length) {
+			case 0:
+				iPre = findHom(w,preHoms)
+				if (iPre < 0) {
+					iPre = pres.indexOf('h')
+					i--
+				}
+				word += pres[iPre]
+				break;
+			case 3:
+				addNum()
+				
+				iPre = findHom(w,preHoms)
+				if (iPre < 0) {
+					iPre = pres.indexOf(input[i-1])
+					i--
+				}
+				word += pres[iPre]
+				
+				break;
+			case 1:
+			case 4:
+				iVow = findHom(w,vowHoms)
+				if (iVow < 0) {
+					console.error('Missing vowel at '+i)
+					iVow = 0
+				} else {
+					word += vows[iVow]
+				}
+				break;
+			case 2:
+			case 5:
+				iSuf = findHom(w,sufHoms)
+				if (iSuf < 0) {
+					console.error('Missing consonant at '+i)
+					iSuf = sufs.indexOf['b']
+				}
+				
+				word += sufs[iSuf]
+				break;
+			case 6:
+				addNum()
+				words.push(word)
+				word = ''
+				i--
+				break;
+		}
+	}
+	
+	if (word.length % 3 == 0) {
+		words.push(word)
+		addNum()
+	}
+	
+	document.getElementById('phonetic').innerHTML = words.join('_')
+	document.getElementById('decimal').innerHTML = parseInt(num, 16).toString()
+	document.getElementById('hexadecimal').innerHTML = num
+}
+
+function findHom(w,homs) {
+	for (var i=0;i<homs.length;i++) {
+		if (homs[i].indexOf(w) > -1) return i
+	}
+	return -1
+}
+
+function pad(a,b){
+	return (1e15+a+"").slice(-b)
+}
+
+var nums = []
+var iPre = iVow = iSuf = 0
+
+for (var i=1; i<=256; i++) {
+	var pre = pres[iPre]
+	var vow = vows[iVow]
+	var suf = sufs[iSuf]
+	
+	nums.push(pre+vow+suf)
+	
+	iSuf++
+	if (iSuf>=sufs.length) {
+		iSuf=0
+		iVow++
+	}
+	if (iVow>=vows.length) {
+		iVow=0
+		iPre++
+	}
+}
+
+console.log(nums)
+console.log(Object.keys(nums.reduce((acc,i)=>({...acc,[i]:true}),{})))
+
+function generate() {	
+	var size = parseInt(document.getElementById('size').value)
+
+	var num = ''
+	var words = []
+	for (i=0; i<size; i++) {
+		var n1 = Math.floor(Math.random()*256)
+		var n2 = Math.floor(Math.random()*256)
+		
+		num += pad(n1.toString(16),2) + pad(n2.toString(16),2)
+		words.push(nums[n1] + nums[n2])
+	}
+
+	document.getElementById('phonetic').innerHTML = words.join('_')
+	document.getElementById('decimal').innerHTML = parseInt(num, 16).toString()
+	document.getElementById('hexadecimal').innerHTML = num
+}
+
+</script>
+
+  </body>
+</html>
